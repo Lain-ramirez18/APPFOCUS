@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Core | Elite Productivity</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root { 
+            --primary: #6366f1; 
+            --accent: #a855f7;
+            --bg-dark: #020617; 
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(225,39%,25%,1) 0, transparent 50%),
+                radial-gradient(at 50% 100%, hsla(280,40%,15%,1) 0, transparent 50%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .xp-bar-fill {
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .priority-high { border-left: 4px solid #ef4444; }
+        .priority-medium { border-left: 4px solid #f59e0b; }
+        .priority-low { border-left: 4px solid #10b981; }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="pb-12">
+
+    <div id="mainContent">
+        <!-- HEADER ELITE -->
+        <header class="sticky top-0 z-40 glass border-b border-white/5 py-4">
+            <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+                        <i data-lucide="zap" class="text-white w-6 h-6 fill-current"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-white text-lg tracking-tight leading-none mb-1">CORE <span class="text-indigo-500 italic">v2.5</span></h2>
+                        <div class="flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em]" id="userHeading">AUTENTICANDO...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <!-- XP Widget -->
+                    <div class="hidden md:flex flex-col items-end gap-1.5">
+                        <div class="flex justify-between w-full">
+                            <span id="rankName" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">RECLUTA</span>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest"><span id="xpDisplay" class="text-white">0</span> XP</span>
+                        </div>
+                        <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="xpBarFill" class="xp-bar-fill h-full w-0"></div>
+                        </div>
+                    </div>
+
+                    <div id="syncStatus" class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-bold">
+                        <div class="w-2 h-2 rounded-full bg-slate-500" id="syncDot"></div>
+                        <span id="syncText" class="text-slate-400">OFFLINE</span>
+                    </div>
+
+                    <button id="btnLogout" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all border border-white/5">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            <!-- LATERAL: ANALÍTICAS Y ESTADO -->
+            <aside class="lg:col-span-4 space-y-8">
+                
+                <!-- CALENDARIO MINI -->
+                <div class="glass rounded-[2.5rem] p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <button onclick="changeDate(-1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <div class="text-center">
+                            <h3 id="dateLabel" class="text-[10px] text-indigo-500 font-black uppercase tracking-[0.3em] mb-1">PROTOCOLO HOY</h3>
+                            <p id="currentDateDisplay" class="text-xl font-extrabold text-white tracking-tight">...</p>
+                        </div>
+                        <button onclick="changeDate(1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="relative pt-2">
+                        <div class="flex justify-between items-end mb-3">
+                            <span class="text-[10px] font-black text-slate-500 uppercase">Eficiencia Diaria</span>
+                            <span id="dailyPercent" class="text-2xl font-black text-white">0%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-white/5">
+                            <div id="dailyBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WIDGET DE RACHA -->
+                <div class="glass-card rounded-[2.5rem] p-8 flex items-center justify-between overflow-hidden relative group">
+                    <div class="relative z-10">
+                        <p class="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-1">Disciplina</p>
+                        <h4 class="text-3xl font-black text-white"><span id="streakDisplay">0</span> DÍAS</h4>
+                        <p class="text-slate-500 text-xs mt-1">Racha de actividad</p>
+                    </div>
+                    <i data-lucide="flame" class="text-orange-500/20 w-16 h-16 group-hover:scale-110 group-hover:text-orange-500/40 transition-all duration-500"></i>
+                </div>
+
+                <!-- QUOTE MOTIVACIONAL -->
+                <div class="p-8 border border-white/5 rounded-[2.5rem] bg-indigo-500/5 italic text-slate-400 text-sm leading-relaxed">
+                    "La diferencia entre un profesional y un amateur es la constancia en los días difíciles."
+                </div>
+            </aside>
+
+            <!-- CENTRAL: AGENDA OPERATIVA -->
+            <div class="lg:col-span-8 space-y-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+                    <div>
+                        <h1 class="text-4xl font-black text-white tracking-tighter mb-2">Agenda de Alto Impacto</h1>
+                        <p class="text-slate-500 font-medium">Gestiona tus bloques de trabajo profundo y hábitos.</p>
+                    </div>
+                    <button onclick="openModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-5 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">
+                        <i data-lucide="plus" class="w-5 h-5"></i> NUEVO BLOQUE
+                    </button>
+                </div>
+
+                <!-- FILTROS/BUSCADOR -->
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600"></i>
+                    <input type="text" id="searchInput" oninput="render()" placeholder="Filtrar por nombre o categoría..." class="w-full bg-white/5 border border-white/5 p-5 pl-16 rounded-[1.5rem] text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium">
+                </div>
+
+                <!-- LISTA DE OBJETIVOS -->
+                <div id="goalsList" class="grid gap-4">
+                    <!-- Skeleton / Empty State -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ONBOARDING MODAL -->
+    <div id="onboarding" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6 hidden">
+        <div class="w-full max-w-md glass p-12 rounded-[3.5rem] text-center border border-indigo-500/20">
+            <div class="w-20 h-20 bg-indigo-600/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                <i data-lucide="user" class="text-indigo-500 w-10 h-10"></i>
+            </div>
+            <h2 class="text-3xl font-black text-white mb-2">Bienvenido al CORE</h2>
+            <p class="text-slate-400 mb-10 text-sm">Tu nombre aparecerá en los reportes de rendimiento.</p>
+            <input type="text" id="userNameInput" class="w-full bg-slate-900 border border-slate-800 text-white p-5 rounded-2xl mb-4 text-center font-bold outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe tu nombre...">
+            <button id="btnInit" class="w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-2xl active:scale-95 transition-all">ESTABLECER PERFIL</button>
+        </div>
+    </div>
+
+    <!-- FORM MODAL -->
+    <div id="modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 w-full max-w-xl rounded-[3rem] border border-white/10 p-10 shadow-3xl">
+            <div class="flex justify-between items-center mb-10">
+                <h3 id="modalTitle" class="text-3xl font-black text-white tracking-tight">Nueva Misión</h3>
+                <button onclick="closeModal()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="goalForm" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Descripción del Objetivo</label>
+                    <input type="text" id="goalTitle" required class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: Finalizar reporte de ventas">
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Hora Inicio</label>
+                        <input type="time" id="goalTimeStart" class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Prioridad</label>
+                        <select id="goalPriority" class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none">
+                            <option value="high">Crítica (Alta)</option>
+                            <option value="medium" selected>Estándar (Media)</option>
+                            <option value="low">De Soporte (Baja)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Categoría Operativa</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cat" value="💼 Trabajo" checked class="hidden peer">
+                            <div class="peer-checked:bg-indigo-600 peer-checked:text-white p-4 rounded-xl bg-white/5 text-slate-400 text-xs font-bold text-center transition-all border border-white/5">💼 TRABAJO</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cat" value="🏃 Salud" class="hidden peer">
+                            <div class="peer-checked:bg-indigo-600 peer-checked:text-white p-4 rounded-xl bg-white/5 text-slate-400 text-xs font-bold text-center transition-all border border-white/5">🏃 SALUD</div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 text-white font-black py-6 rounded-[1.5rem] mt-4 shadow-2xl shadow-indigo-600/20 active:scale-95 transition-all">CONFIRMAR BLOQUE</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // INIT FIREBASE
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'elite-performance-core';
+
+        // STATE (Híbrido: Local Storage para velocidad + Firebase para persistencia)
+        let state = {
+            user: JSON.parse(localStorage.getItem('epc_user')) || { name: 'Agente', xp: 0, streak: 0 },
+            goals: JSON.parse(localStorage.getItem('epc_goals')) || [],
+            currentDate: new Date().toISOString().split('T')[0]
+        };
+
+        const RANKS = [
+            { name: "RECLUTA", min: 0 },
+            { name: "ESPECIALISTA", min: 500 },
+            { name: "DIRECTOR", min: 1500 },
+            { name: "GENERAL", min: 4000 },
+            { name: "LEYENDA", min: 10000 }
+        ];
+
+        // RENDER UI
+        function render() {
+            // Perfil y Gamificación
+            document.getElementById('userHeading').innerText = `${state.user.name.toUpperCase()} // STATUS: ACTIVE`;
+            document.getElementById('xpDisplay').innerText = state.user.xp;
+            document.getElementById('streakDisplay').innerText = state.user.streak || 0;
+
+            let rank = RANKS[0];
+            let nextRank = RANKS[1];
+            for(let r of RANKS) { if(state.user.xp >= r.min) { 
+                rank = r; 
+                nextRank = RANKS[RANKS.indexOf(r)+1] || { min: state.user.xp * 2 };
+            }}
+            document.getElementById('rankName').innerText = rank.name;
+            const xpPerc = ((state.user.xp - rank.min) / (nextRank.min - rank.min)) * 100;
+            document.getElementById('xpBarFill').style.width = `${Math.min(xpPerc, 100)}%`;
+
+            // Fecha
+            const d = new Date(state.currentDate + "T12:00:00");
+            document.getElementById('currentDateDisplay').innerText = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+
+            // Lista de Objetivos
+            const list = document.getElementById('goalsList');
+            const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const filtered = state.goals.filter(g => g.date === state.currentDate && g.title.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-24 glass rounded-[3rem] border-dashed border-white/10 text-slate-600 font-bold uppercase tracking-widest">Sin misiones activas</div>`;
+            } else {
+                let completed = 0;
+                list.innerHTML = filtered.map(g => {
+                    if (g.isCompleted) completed++;
+                    return `
+                        <div class="priority-${g.priority} glass-card p-6 rounded-[2rem] flex items-center justify-between gap-6 ${g.isCompleted ? 'opacity-40 grayscale-[0.5]' : ''}">
+                            <div class="flex items-center gap-6 flex-grow">
+                                <button onclick="toggleGoal('${g.id}')" class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${g.isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500 hover:bg-slate-700 shadow-inner'}">
+                                    <i data-lucide="${g.isCompleted ? 'check-square' : 'square'}" class="w-6 h-6"></i>
+                                </button>
+                                <div>
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${g.category}</span>
+                                        ${g.start ? `<span class="text-[9px] font-bold text-slate-500 px-2 py-0.5 bg-white/5 rounded-md">${g.start} HRS</span>` : ''}
+                                    </div>
+                                    <h4 class="text-lg font-extrabold text-white ${g.isCompleted ? 'line-through' : ''}">${g.title}</h4>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="deleteGoal('${g.id}')" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const dailyPerc = Math.round((completed / filtered.length) * 100) || 0;
+                document.getElementById('dailyPercent').innerText = `${dailyPerc}%`;
+                document.getElementById('dailyBar').style.width = `${dailyPerc}%`;
+            }
+            lucide.createIcons();
+        }
+
+        // ACCIONES
+        window.toggleGoal = async (id) => {
+            const goal = state.goals.find(g => g.id === id);
+            if (!goal) return;
+            goal.isCompleted = !goal.isCompleted;
+            
+            if (goal.isCompleted) {
+                state.user.xp += 50;
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#6366f1', '#a855f7'] });
+            } else {
+                state.user.xp = Math.max(0, state.user.xp - 50);
+            }
+            
+            save();
+            if(auth.currentUser) {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id), { isCompleted: goal.isCompleted });
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data'), { xp: state.user.xp });
+                } catch(e) {}
+            }
+        };
+
+        window.deleteGoal = async (id) => {
+            if(!confirm('¿Eliminar este bloque operativo?')) return;
+            state.goals = state.goals.filter(g => g.id !== id);
+            save();
+            if(auth.currentUser) {
+                try { await deleteDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id)); } catch(e) {}
+            }
+        };
+
+        document.getElementById('goalForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const g = {
+                id: crypto.randomUUID(),
+                title: document.getElementById('goalTitle').value,
+                start: document.getElementById('goalTimeStart').value,
+                priority: document.getElementById('goalPriority').value,
+                category: document.querySelector('input[name="cat"]:checked').value,
+                isCompleted: false,
+                date: state.currentDate
+            };
+            state.goals.push(g);
+            save();
+            closeModal();
+            if(auth.currentUser) {
+                try { await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', g.id), g); } catch(e) {}
+            }
+        };
+
+        function save() {
+            localStorage.setItem('epc_user', JSON.stringify(state.user));
+            localStorage.setItem('epc_goals', JSON.stringify(state.goals));
+            render();
+        }
+
+        window.changeDate = (days) => {
+            const d = new Date(state.currentDate + "T12:00:00");
+            d.setDate(d.getDate() + days);
+            state.currentDate = d.toISOString().split('T')[0];
+            render();
+        };
+
+        window.openModal = () => document.getElementById('modal').classList.remove('hidden');
+        window.closeModal = () => document.getElementById('modal').classList.add('hidden');
+
+        // SYNC FIREBASE
+        onAuthStateChanged(auth, async (u) => {
+            if (u) {
+                document.getElementById('syncDot').classList.replace('bg-slate-500', 'bg-emerald-500');
+                document.getElementById('syncText').innerText = "SYNC: ON";
+                document.getElementById('syncText').classList.replace('text-slate-400', 'text-emerald-500');
+
+                // Cargar perfil
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'users', u.uid, 'profile', 'data'));
+                if (snap.exists()) {
+                    state.user = snap.data();
+                    save();
+                } else {
+                    document.getElementById('onboarding').classList.remove('hidden');
+                }
+
+                // Listener de metas
+                onSnapshot(collection(db, 'artifacts', appId, 'users', u.uid, 'goals'), (s) => {
+                    state.goals = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                    save();
+                });
+            } else {
+                signInAnonymously(auth);
+            }
+        });
+
+        document.getElementById('btnInit').onclick = async () => {
+            const name = document.getElementById('userNameInput').value.trim();
+            if(!name) return;
+            state.user.name = name;
+            state.user.streak = 1;
+            save();
+            document.getElementById('onboarding').classList.add('hidden');
+            if(auth.currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data'), state.user);
+            }
+        };
+
+        render();
+    </script>
+</body>
+</html>

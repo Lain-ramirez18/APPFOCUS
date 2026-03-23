@@ -7,9 +7,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
@@ -17,387 +14,630 @@
         
         :root { 
             --primary: #6366f1; 
+            --primary-glow: rgba(99, 102, 241, 0.4);
             --accent: #a855f7;
             --bg-dark: #020617; 
+            --surface: rgba(15, 23, 42, 0.6);
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(225,39%,25%,1) 0, transparent 50%),
-                radial-gradient(at 50% 100%, hsla(280,40%,15%,1) 0, transparent 50%);
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), 
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
             color: #f8fafc;
             min-height: 100vh;
             overflow-x: hidden;
+            background-attachment: fixed;
         }
 
+        /* Glass & Cards */
         .glass { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.5);
+            background: var(--surface); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5), inset 0 1px 0 0 rgba(255,255,255,0.05);
         }
 
         .glass-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
 
         .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5), 0 0 20px -5px var(--primary-glow);
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.6) 100%);
         }
 
-        .xp-bar-fill {
-            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-        }
-
+        /* Priorities */
         .priority-high { border-left: 4px solid #ef4444; }
         .priority-medium { border-left: 4px solid #f59e0b; }
-        .priority-low { border-left: 4px solid #10b981; }
+        .priority-low { border-left: 4px solid #3b82f6; }
 
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        /* Custom Checkbox Animation */
+        .check-btn.completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+            transform: scale(0.95);
+        }
+
+        /* XP Bar */
+        .xp-bar-container {
+            background: rgba(0,0,0,0.5);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .xp-bar-fill {
+            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
             background-size: 200% 100%;
-            animation: shimmer 2s infinite;
+            animation: gradientMove 3s linear infinite;
+            box-shadow: 0 0 10px var(--primary-glow);
         }
 
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        @keyframes gradientMove {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
         }
 
-        /* Custom Scrollbar */
+        /* Toasts */
+        .toast-enter { animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .toast-leave { animation: slideOutDown 0.3s ease-in forwards; }
+
+        @keyframes slideInUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOutDown {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
     </style>
 </head>
-<body class="pb-12">
+<body class="pb-24">
 
     <div id="mainContent">
         <!-- HEADER ELITE -->
         <header class="sticky top-0 z-40 glass border-b border-white/5 py-4">
             <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-                        <i data-lucide="zap" class="text-white w-6 h-6 fill-current"></i>
+                    <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        <i data-lucide="zap" class="text-white w-6 h-6 fill-current relative z-10"></i>
                     </div>
                     <div>
-                        <h2 class="font-black text-white text-lg tracking-tight leading-none mb-1">CORE <span class="text-indigo-500 italic">v2.5</span></h2>
+                        <h2 class="font-black text-white text-lg tracking-tight leading-none mb-1 flex items-center gap-2">
+                            CORE <span class="px-1.5 py-0.5 rounded text-[10px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">v3.0</span>
+                        </h2>
                         <div class="flex items-center gap-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em]" id="userHeading">AUTENTICANDO...</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-6">
-                    <!-- XP Widget -->
-                    <div class="hidden md:flex flex-col items-end gap-1.5">
+                <div class="flex items-center gap-4 sm:gap-6">
+                    <!-- XP Widget (Hidden on very small screens) -->
+                    <div class="hidden sm:flex flex-col items-end gap-1.5">
                         <div class="flex justify-between w-full">
-                            <span id="rankName" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">RECLUTA</span>
-                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest"><span id="xpDisplay" class="text-white">0</span> XP</span>
+                            <span id="rankName" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest drop-shadow-md">RECLUTA</span>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span id="xpDisplay" class="text-white drop-shadow-md">0</span> XP</span>
                         </div>
-                        <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <div id="xpBarFill" class="xp-bar-fill h-full w-0"></div>
+                        <div class="w-32 md:w-48 h-2 xp-bar-container rounded-full overflow-hidden">
+                            <div id="xpBarFill" class="xp-bar-fill h-full w-0 rounded-full"></div>
                         </div>
                     </div>
 
-                    <div id="syncStatus" class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-bold">
+                    <div id="syncStatus" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-[10px] font-bold">
                         <div class="w-2 h-2 rounded-full bg-slate-500" id="syncDot"></div>
                         <span id="syncText" class="text-slate-400">OFFLINE</span>
                     </div>
 
-                    <button id="btnLogout" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all border border-white/5">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <button id="btnLogout" class="w-10 h-10 rounded-xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all border border-white/5">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <main class="max-w-7xl mx-auto px-6 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10">
             
             <!-- LATERAL: ANALÍTICAS Y ESTADO -->
-            <aside class="lg:col-span-4 space-y-8">
+            <aside class="lg:col-span-4 space-y-6 md:space-y-8">
                 
                 <!-- CALENDARIO MINI -->
-                <div class="glass rounded-[2.5rem] p-8">
-                    <div class="flex items-center justify-between mb-8">
-                        <button onclick="changeDate(-1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all">
+                <div class="glass rounded-[2rem] p-6 md:p-8 relative overflow-hidden">
+                    <!-- Decorative blur -->
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none"></div>
+                    
+                    <div class="flex items-center justify-between mb-8 relative z-10">
+                        <button onclick="changeDate(-1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all border border-white/5">
                             <i data-lucide="chevron-left" class="w-5 h-5"></i>
                         </button>
                         <div class="text-center">
-                            <h3 id="dateLabel" class="text-[10px] text-indigo-500 font-black uppercase tracking-[0.3em] mb-1">PROTOCOLO HOY</h3>
-                            <p id="currentDateDisplay" class="text-xl font-extrabold text-white tracking-tight">...</p>
+                            <h3 id="dateLabel" class="text-[10px] text-indigo-400 font-black uppercase tracking-[0.3em] mb-1">DÍA OPERATIVO</h3>
+                            <p id="currentDateDisplay" class="text-lg md:text-xl font-extrabold text-white tracking-tight">...</p>
                         </div>
-                        <button onclick="changeDate(1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all">
+                        <button onclick="changeDate(1)" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all border border-white/5">
                             <i data-lucide="chevron-right" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <div class="relative pt-2">
+                    <div class="relative pt-2 z-10">
                         <div class="flex justify-between items-end mb-3">
-                            <span class="text-[10px] font-black text-slate-500 uppercase">Eficiencia Diaria</span>
-                            <span id="dailyPercent" class="text-2xl font-black text-white">0%</span>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <i data-lucide="target" class="w-3 h-3 text-emerald-400"></i> Eficiencia
+                            </span>
+                            <span id="dailyPercent" class="text-3xl font-black text-white">0%</span>
                         </div>
-                        <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-white/5">
-                            <div id="dailyBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700" style="width: 0%"></div>
+                        <div class="w-full h-3 bg-slate-900/80 rounded-full overflow-hidden p-0.5 border border-white/5 shadow-inner">
+                            <div id="dailyBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000 ease-out relative" style="width: 0%">
+                                <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- WIDGET DE RACHA -->
-                <div class="glass-card rounded-[2.5rem] p-8 flex items-center justify-between overflow-hidden relative group">
+                <div class="glass-card rounded-[2rem] p-6 md:p-8 flex items-center justify-between overflow-hidden relative group">
+                    <div class="absolute -bottom-6 -left-6 w-24 h-24 bg-orange-500/10 blur-2xl rounded-full pointer-events-none group-hover:bg-orange-500/20 transition-all"></div>
                     <div class="relative z-10">
-                        <p class="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-1">Disciplina</p>
+                        <p class="text-[10px] text-orange-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                            <i data-lucide="flame" class="w-3 h-3"></i> Disciplina
+                        </p>
                         <h4 class="text-3xl font-black text-white"><span id="streakDisplay">0</span> DÍAS</h4>
-                        <p class="text-slate-500 text-xs mt-1">Racha de actividad</p>
+                        <p class="text-slate-500 text-xs mt-1 font-medium">Racha de inactividad evitada</p>
                     </div>
-                    <i data-lucide="flame" class="text-orange-500/20 w-16 h-16 group-hover:scale-110 group-hover:text-orange-500/40 transition-all duration-500"></i>
+                    <div class="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20 group-hover:scale-110 transition-transform duration-500">
+                        <i data-lucide="flame" class="text-orange-500 w-8 h-8 fill-orange-500/20"></i>
+                    </div>
                 </div>
 
                 <!-- QUOTE MOTIVACIONAL -->
-                <div class="p-8 border border-white/5 rounded-[2.5rem] bg-indigo-500/5 italic text-slate-400 text-sm leading-relaxed">
-                    "La diferencia entre un profesional y un amateur es la constancia en los días difíciles."
+                <div class="p-6 md:p-8 border border-white/5 rounded-[2rem] bg-gradient-to-br from-indigo-500/5 to-transparent relative">
+                    <i data-lucide="quote" class="absolute top-6 left-6 w-8 h-8 text-indigo-500/10 rotate-180"></i>
+                    <p class="relative z-10 italic text-slate-300 text-sm leading-relaxed font-medium pl-2">
+                        "La diferencia entre un profesional y un amateur es la constancia en los días que no hay motivación."
+                    </p>
                 </div>
             </aside>
 
             <!-- CENTRAL: AGENDA OPERATIVA -->
-            <div class="lg:col-span-8 space-y-8">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+            <div class="lg:col-span-8 space-y-6 md:space-y-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 glass p-6 rounded-[2rem]">
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tighter mb-2">Agenda de Alto Impacto</h1>
-                        <p class="text-slate-500 font-medium">Gestiona tus bloques de trabajo profundo y hábitos.</p>
+                        <h1 class="text-3xl md:text-4xl font-black text-white tracking-tighter mb-2">Agenda de Impacto</h1>
+                        <p class="text-slate-400 font-medium text-sm md:text-base">Gestiona tus bloques de trabajo profundo y hábitos de élite.</p>
                     </div>
-                    <button onclick="openModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-5 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">
-                        <i data-lucide="plus" class="w-5 h-5"></i> NUEVO BLOQUE
+                    <button onclick="openModal()" class="w-full sm:w-auto bg-white text-slate-900 hover:bg-indigo-50 px-6 py-4 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95 group">
+                        <div class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center group-hover:rotate-90 transition-transform duration-300">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </div>
+                        NUEVO BLOQUE
                     </button>
                 </div>
 
                 <!-- FILTROS/BUSCADOR -->
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600"></i>
-                    <input type="text" id="searchInput" oninput="render()" placeholder="Filtrar por nombre o categoría..." class="w-full bg-white/5 border border-white/5 p-5 pl-16 rounded-[1.5rem] text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium">
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[1.5rem] blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+                    <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 z-10"></i>
+                    <input type="text" id="searchInput" oninput="render()" placeholder="Filtrar por nombre o categoría..." class="w-full bg-slate-900/80 border border-white/10 p-4 pl-14 rounded-[1.5rem] text-white outline-none focus:border-indigo-500/50 transition-all font-medium relative z-10 placeholder:text-slate-600">
                 </div>
 
                 <!-- LISTA DE OBJETIVOS -->
                 <div id="goalsList" class="grid gap-4">
-                    <!-- Skeleton / Empty State -->
+                    <!-- Se llena dinámicamente -->
                 </div>
             </div>
         </main>
     </div>
 
     <!-- ONBOARDING MODAL -->
-    <div id="onboarding" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6 hidden">
-        <div class="w-full max-w-md glass p-12 rounded-[3.5rem] text-center border border-indigo-500/20">
-            <div class="w-20 h-20 bg-indigo-600/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                <i data-lucide="user" class="text-indigo-500 w-10 h-10"></i>
+    <div id="onboarding" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md bg-slate-900 border border-white/10 p-8 md:p-12 rounded-[2.5rem] text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+            <div class="w-20 h-20 bg-indigo-500/10 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+                <i data-lucide="shield" class="text-indigo-400 w-10 h-10"></i>
             </div>
-            <h2 class="text-3xl font-black text-white mb-2">Bienvenido al CORE</h2>
-            <p class="text-slate-400 mb-10 text-sm">Tu nombre aparecerá en los reportes de rendimiento.</p>
-            <input type="text" id="userNameInput" class="w-full bg-slate-900 border border-slate-800 text-white p-5 rounded-2xl mb-4 text-center font-bold outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe tu nombre...">
-            <button id="btnInit" class="w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-2xl active:scale-95 transition-all">ESTABLECER PERFIL</button>
+            <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Iniciar CORE</h2>
+            <p class="text-slate-400 mb-8 text-sm">Establece tu identificativo operativo.</p>
+            <input type="text" id="userNameInput" class="w-full bg-slate-950 border border-white/10 text-white p-4 rounded-xl mb-6 text-center font-bold outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600" placeholder="Ej: Agente Smith">
+            <button id="btnInit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">ESTABLECER PERFIL</button>
         </div>
     </div>
 
     <!-- FORM MODAL -->
-    <div id="modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 w-full max-w-xl rounded-[3rem] border border-white/10 p-10 shadow-3xl">
-            <div class="flex justify-between items-center mb-10">
-                <h3 id="modalTitle" class="text-3xl font-black text-white tracking-tight">Nueva Misión</h3>
-                <button onclick="closeModal()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+    <div id="modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 w-full max-w-xl rounded-[2rem] border border-white/10 p-6 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 relative overflow-hidden" id="modalContent">
+            <div class="flex justify-between items-center mb-8 relative z-10">
+                <h3 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="crosshair" class="text-indigo-400 w-6 h-6"></i> Nueva Misión
+                </h3>
+                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <form id="goalForm" class="space-y-6">
+            <form id="goalForm" class="space-y-5 relative z-10">
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Descripción del Objetivo</label>
-                    <input type="text" id="goalTitle" required class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: Finalizar reporte de ventas">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Descripción del Objetivo</label>
+                    <input type="text" id="goalTitle" required class="w-full bg-slate-950/50 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600 font-medium" placeholder="Ej: Finalizar reporte Q3...">
                 </div>
 
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Hora Inicio</label>
-                        <input type="time" id="goalTimeStart" class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hora (Opcional)</label>
+                        <input type="time" id="goalTimeStart" class="w-full bg-slate-950/50 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium [color-scheme:dark]">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Prioridad</label>
-                        <select id="goalPriority" class="w-full bg-slate-800/50 border border-slate-700 p-5 rounded-2xl text-white outline-none">
-                            <option value="high">Crítica (Alta)</option>
-                            <option value="medium" selected>Estándar (Media)</option>
-                            <option value="low">De Soporte (Baja)</option>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Prioridad</label>
+                        <select id="goalPriority" class="w-full bg-slate-950/50 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium appearance-none">
+                            <option value="high">🔴 Crítica</option>
+                            <option value="medium" selected>🟡 Estándar</option>
+                            <option value="low">🔵 Baja</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Categoría Operativa</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="cat" value="💼 Trabajo" checked class="hidden peer">
-                            <div class="peer-checked:bg-indigo-600 peer-checked:text-white p-4 rounded-xl bg-white/5 text-slate-400 text-xs font-bold text-center transition-all border border-white/5">💼 TRABAJO</div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-2">Categoría</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="cat" value="Deep Work" checked class="hidden peer">
+                            <div class="peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 p-3 rounded-xl bg-slate-950/50 text-slate-400 text-[11px] font-bold text-center border border-white/10 hover:bg-white/5 transition-all flex flex-col items-center gap-1.5">
+                                <i data-lucide="brain" class="w-4 h-4 peer-checked:animate-pulse"></i> DEEP WORK
+                            </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="cat" value="🏃 Salud" class="hidden peer">
-                            <div class="peer-checked:bg-indigo-600 peer-checked:text-white p-4 rounded-xl bg-white/5 text-slate-400 text-xs font-bold text-center transition-all border border-white/5">🏃 SALUD</div>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="cat" value="Salud" class="hidden peer">
+                            <div class="peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-500 p-3 rounded-xl bg-slate-950/50 text-slate-400 text-[11px] font-bold text-center border border-white/10 hover:bg-white/5 transition-all flex flex-col items-center gap-1.5">
+                                <i data-lucide="activity" class="w-4 h-4"></i> SALUD
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="cat" value="Aprendizaje" class="hidden peer">
+                            <div class="peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-500 p-3 rounded-xl bg-slate-950/50 text-slate-400 text-[11px] font-bold text-center border border-white/10 hover:bg-white/5 transition-all flex flex-col items-center gap-1.5">
+                                <i data-lucide="book-open" class="w-4 h-4"></i> APRENDER
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="cat" value="Admin" class="hidden peer">
+                            <div class="peer-checked:bg-slate-600 peer-checked:text-white peer-checked:border-slate-500 p-3 rounded-xl bg-slate-950/50 text-slate-400 text-[11px] font-bold text-center border border-white/10 hover:bg-white/5 transition-all flex flex-col items-center gap-1.5">
+                                <i data-lucide="inbox" class="w-4 h-4"></i> ADMIN
+                            </div>
                         </label>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-indigo-600 text-white font-black py-6 rounded-[1.5rem] mt-4 shadow-2xl shadow-indigo-600/20 active:scale-95 transition-all">CONFIRMAR BLOQUE</button>
+                <button type="submit" class="w-full bg-white text-slate-900 hover:bg-indigo-50 font-black py-4 rounded-xl mt-6 shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4"></i> CONFIRMAR BLOQUE
+                </button>
             </form>
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // INIT FIREBASE
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // FIREBASE SETUP
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'elite-performance-core';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'elite-performance-core-v3';
 
-        // STATE (Híbrido: Local Storage para velocidad + Firebase para persistencia)
+        // APP STATE (LocalStorage for instantaneous UI, Firebase for sync)
         let state = {
-            user: JSON.parse(localStorage.getItem('epc_user')) || { name: 'Agente', xp: 0, streak: 0 },
-            goals: JSON.parse(localStorage.getItem('epc_goals')) || [],
+            user: JSON.parse(localStorage.getItem('epc_user_v3')) || { name: 'Agente', xp: 0, streak: 0 },
+            goals: JSON.parse(localStorage.getItem('epc_goals_v3')) || [],
             currentDate: new Date().toISOString().split('T')[0]
         };
 
         const RANKS = [
-            { name: "RECLUTA", min: 0 },
-            { name: "ESPECIALISTA", min: 500 },
-            { name: "DIRECTOR", min: 1500 },
-            { name: "GENERAL", min: 4000 },
-            { name: "LEYENDA", min: 10000 }
+            { name: "RECLUTA", min: 0, color: "text-slate-400" },
+            { name: "ESPECIALISTA", min: 500, color: "text-blue-400" },
+            { name: "DIRECTOR", min: 1500, color: "text-purple-400" },
+            { name: "GENERAL", min: 4000, color: "text-emerald-400" },
+            { name: "LEYENDA", min: 10000, color: "text-amber-400" }
         ];
 
-        // RENDER UI
+        // --- AUTHENTICATION STRICT FLOW ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+                showToast("Error de conexión", "error");
+            }
+        };
+
+        // Initialize immediately
+        initAuth();
+
+        // Listen for state changes to handle data sync
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                document.getElementById('syncText').innerText = "OFFLINE";
+                document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-slate-500');
+                return;
+            }
+
+            // User is authenticated, start syncing
+            document.getElementById('syncDot').classList.replace('bg-slate-500', 'bg-emerald-500');
+            document.getElementById('syncText').innerText = "SYNC ON";
+            document.getElementById('syncText').classList.replace('text-slate-400', 'text-emerald-400');
+
+            try {
+                // Fetch Profile
+                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+                const snap = await getDoc(profileRef);
+                
+                if (snap.exists()) {
+                    state.user = snap.data();
+                    saveLocal();
+                } else {
+                    // New user -> Show Onboarding
+                    if (!localStorage.getItem('epc_user_v3')) {
+                        document.getElementById('onboarding').classList.remove('hidden');
+                    } else {
+                        // Migrate local to cloud
+                        await setDoc(profileRef, state.user);
+                    }
+                }
+
+                // Listen to Goals
+                const goalsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'goals');
+                onSnapshot(goalsRef, (snapshot) => {
+                    const cloudGoals = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // Simple merge strategy: Cloud wins for simplicity in this demo
+                    if (cloudGoals.length > 0 || snapshot.metadata.hasPendingWrites) {
+                        state.goals = cloudGoals;
+                        saveLocal();
+                    }
+                }, (error) => {
+                    console.error("Sync error:", error);
+                });
+
+            } catch(e) {
+                console.error("Error setting up sync:", e);
+            }
+        });
+
+        // --- UI RENDERING ---
         function render() {
-            // Perfil y Gamificación
+            // Header Stats
             document.getElementById('userHeading').innerText = `${state.user.name.toUpperCase()} // STATUS: ACTIVE`;
-            document.getElementById('xpDisplay').innerText = state.user.xp;
+            
+            // Animate XP Count
+            const xpEl = document.getElementById('xpDisplay');
+            animateValue(xpEl, parseInt(xpEl.innerText) || 0, state.user.xp, 1000);
+            
             document.getElementById('streakDisplay').innerText = state.user.streak || 0;
 
+            // Rank Logic
             let rank = RANKS[0];
             let nextRank = RANKS[1];
-            for(let r of RANKS) { if(state.user.xp >= r.min) { 
-                rank = r; 
-                nextRank = RANKS[RANKS.indexOf(r)+1] || { min: state.user.xp * 2 };
-            }}
-            document.getElementById('rankName').innerText = rank.name;
+            for(let i = 0; i < RANKS.length; i++) {
+                if(state.user.xp >= RANKS[i].min) {
+                    rank = RANKS[i];
+                    nextRank = RANKS[i+1] || { min: state.user.xp + 5000 };
+                }
+            }
+            
+            const rankEl = document.getElementById('rankName');
+            rankEl.innerText = rank.name;
+            rankEl.className = `text-[10px] font-black uppercase tracking-widest drop-shadow-md ${rank.color}`;
+            
             const xpPerc = ((state.user.xp - rank.min) / (nextRank.min - rank.min)) * 100;
             document.getElementById('xpBarFill').style.width = `${Math.min(xpPerc, 100)}%`;
 
-            // Fecha
+            // Date Formatting
             const d = new Date(state.currentDate + "T12:00:00");
+            const isToday = state.currentDate === new Date().toISOString().split('T')[0];
+            document.getElementById('dateLabel').innerText = isToday ? "PROTOCOLO HOY" : "HISTORIAL";
             document.getElementById('currentDateDisplay').innerText = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
-            // Lista de Objetivos
+            // Goals List
             const list = document.getElementById('goalsList');
             const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
-            const filtered = state.goals.filter(g => g.date === state.currentDate && g.title.toLowerCase().includes(search));
+            const filtered = state.goals
+                .filter(g => g.date === state.currentDate && (g.title.toLowerCase().includes(search) || g.category.toLowerCase().includes(search)))
+                .sort((a, b) => {
+                    // Sort by priority (high, med, low) then completion
+                    const pMap = { high: 1, medium: 2, low: 3 };
+                    if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+                    return pMap[a.priority] - pMap[b.priority];
+                });
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div class="text-center py-24 glass rounded-[3rem] border-dashed border-white/10 text-slate-600 font-bold uppercase tracking-widest">Sin misiones activas</div>`;
+                list.innerHTML = `
+                    <div class="text-center py-16 px-6 glass rounded-[2rem] border-dashed border-white/10 flex flex-col items-center justify-center animate-in fade-in duration-500">
+                        <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 text-slate-600">
+                            <i data-lucide="inbox" class="w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-white font-bold mb-1">Día Despejado</h4>
+                        <p class="text-slate-500 text-sm">No hay bloques operativos programados.</p>
+                    </div>`;
             } else {
                 let completed = 0;
-                list.innerHTML = filtered.map(g => {
+                list.innerHTML = filtered.map((g, index) => {
                     if (g.isCompleted) completed++;
+                    
+                    let catIcon = 'target';
+                    if(g.category === 'Deep Work') catIcon = 'brain';
+                    if(g.category === 'Salud') catIcon = 'activity';
+                    if(g.category === 'Aprendizaje') catIcon = 'book-open';
+                    if(g.category === 'Admin') catIcon = 'inbox';
+
                     return `
-                        <div class="priority-${g.priority} glass-card p-6 rounded-[2rem] flex items-center justify-between gap-6 ${g.isCompleted ? 'opacity-40 grayscale-[0.5]' : ''}">
-                            <div class="flex items-center gap-6 flex-grow">
-                                <button onclick="toggleGoal('${g.id}')" class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${g.isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500 hover:bg-slate-700 shadow-inner'}">
-                                    <i data-lucide="${g.isCompleted ? 'check-square' : 'square'}" class="w-6 h-6"></i>
+                        <div class="priority-${g.priority} glass-card p-5 md:p-6 rounded-[1.5rem] flex items-center justify-between gap-4 group transition-all duration-300 ${g.isCompleted ? 'opacity-50 hover:opacity-100' : ''}" style="animation: slideInUp 0.4s ease forwards ${index * 0.05}s; opacity: 0; transform: translateY(20px);">
+                            <div class="flex items-center gap-4 md:gap-5 flex-grow overflow-hidden">
+                                <button onclick="toggleGoal('${g.id}')" class="check-btn flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 ${g.isCompleted ? 'completed' : 'bg-slate-800/80 text-slate-500 hover:bg-slate-700 hover:text-white border border-white/5'}">
+                                    <i data-lucide="${g.isCompleted ? 'check' : 'square'}" class="w-5 h-5 md:w-6 md:h-6"></i>
                                 </button>
-                                <div>
-                                    <div class="flex items-center gap-3 mb-1">
-                                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${g.category}</span>
-                                        ${g.start ? `<span class="text-[9px] font-bold text-slate-500 px-2 py-0.5 bg-white/5 rounded-md">${g.start} HRS</span>` : ''}
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
+                                            <i data-lucide="${catIcon}" class="w-3 h-3"></i> ${g.category}
+                                        </span>
+                                        ${g.start ? `<span class="text-[9px] font-bold text-slate-400 px-2 py-0.5 bg-white/5 rounded-md border border-white/5"><i data-lucide="clock" class="w-3 h-3 inline mr-0.5 relative -top-0.5"></i>${g.start}</span>` : ''}
                                     </div>
-                                    <h4 class="text-lg font-extrabold text-white ${g.isCompleted ? 'line-through' : ''}">${g.title}</h4>
+                                    <h4 class="text-base md:text-lg font-bold text-white truncate transition-all ${g.isCompleted ? 'line-through text-slate-400' : ''}">${g.title}</h4>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="deleteGoal('${g.id}')" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
+                            <button onclick="deleteGoal('${g.id}')" class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                <i data-lucide="trash-2" class="w-4 h-4 md:w-5 md:h-5"></i>
+                            </button>
                         </div>
                     `;
                 }).join('');
 
                 const dailyPerc = Math.round((completed / filtered.length) * 100) || 0;
-                document.getElementById('dailyPercent').innerText = `${dailyPerc}%`;
+                const percentEl = document.getElementById('dailyPercent');
+                animateValue(percentEl, parseInt(percentEl.innerText) || 0, dailyPerc, 800, "%");
                 document.getElementById('dailyBar').style.width = `${dailyPerc}%`;
+                
+                if (dailyPerc === 100 && completed > 0) {
+                    document.getElementById('dailyBar').classList.add('shadow-[0_0_15px_rgba(16,185,129,0.8)]');
+                } else {
+                    document.getElementById('dailyBar').classList.remove('shadow-[0_0_15px_rgba(16,185,129,0.8)]');
+                }
             }
-            lucide.createIcons();
+            
+            // Re-initialize icons for newly injected HTML
+            setTimeout(() => lucide.createIcons(), 0);
         }
 
-        // ACCIONES
+        // --- ACTIONS ---
         window.toggleGoal = async (id) => {
             const goal = state.goals.find(g => g.id === id);
             if (!goal) return;
             goal.isCompleted = !goal.isCompleted;
             
             if (goal.isCompleted) {
-                state.user.xp += 50;
-                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#6366f1', '#a855f7'] });
+                const xpGain = 50 + (goal.priority === 'high' ? 25 : 0);
+                state.user.xp += xpGain;
+                showToast(`+${xpGain} XP Ganados`, "success");
+                confetti({ 
+                    particleCount: 100, 
+                    spread: 70, 
+                    origin: { y: 0.6 }, 
+                    colors: ['#6366f1', '#a855f7', '#10b981'],
+                    disableForReducedMotion: true
+                });
             } else {
                 state.user.xp = Math.max(0, state.user.xp - 50);
             }
             
-            save();
+            saveLocal();
+            
+            // Sync
             if(auth.currentUser) {
                 try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id), { isCompleted: goal.isCompleted });
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data'), { xp: state.user.xp });
-                } catch(e) {}
+                    const goalRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id);
+                    const profileRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data');
+                    await updateDoc(goalRef, { isCompleted: goal.isCompleted });
+                    await updateDoc(profileRef, { xp: state.user.xp });
+                } catch(e) { console.error("Update error:", e); }
             }
         };
 
         window.deleteGoal = async (id) => {
-            if(!confirm('¿Eliminar este bloque operativo?')) return;
             state.goals = state.goals.filter(g => g.id !== id);
-            save();
+            saveLocal();
+            showToast("Bloque eliminado", "info");
+            
             if(auth.currentUser) {
-                try { await deleteDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id)); } catch(e) {}
+                try { 
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', id)); 
+                } catch(e) { console.error(e); }
             }
         };
 
-        document.getElementById('goalForm').onsubmit = async (e) => {
+        // Form Submit
+        document.getElementById('goalForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const titleInput = document.getElementById('goalTitle');
+            
             const g = {
                 id: crypto.randomUUID(),
-                title: document.getElementById('goalTitle').value,
+                title: titleInput.value.trim(),
                 start: document.getElementById('goalTimeStart').value,
                 priority: document.getElementById('goalPriority').value,
                 category: document.querySelector('input[name="cat"]:checked').value,
                 isCompleted: false,
-                date: state.currentDate
+                date: state.currentDate,
+                createdAt: new Date().toISOString()
             };
+            
             state.goals.push(g);
-            save();
+            saveLocal();
             closeModal();
-            if(auth.currentUser) {
-                try { await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', g.id), g); } catch(e) {}
-            }
-        };
+            titleInput.value = ''; // reset
+            document.getElementById('goalTimeStart').value = '';
+            
+            showToast("Misión añadida", "success");
 
-        function save() {
-            localStorage.setItem('epc_user', JSON.stringify(state.user));
-            localStorage.setItem('epc_goals', JSON.stringify(state.goals));
+            if(auth.currentUser) {
+                try { 
+                    await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'goals', g.id), g); 
+                } catch(e) { console.error(e); }
+            }
+        });
+
+        // Onboarding Submit
+        document.getElementById('btnInit').addEventListener('click', async () => {
+            const name = document.getElementById('userNameInput').value.trim();
+            if(!name) {
+                document.getElementById('userNameInput').classList.add('border-red-500');
+                setTimeout(() => document.getElementById('userNameInput').classList.remove('border-red-500'), 1000);
+                return;
+            }
+            state.user.name = name;
+            state.user.streak = 1;
+            saveLocal();
+            document.getElementById('onboarding').classList.add('hidden');
+            showToast(`Bienvenido al CORE, ${name}`, "success");
+            
+            if(auth.currentUser) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data'), state.user);
+                } catch(e) { console.error(e); }
+            }
+        });
+
+        // Logout Flow (just signs out of firebase, local stays for offline)
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            if(confirm("¿Cerrar conexión sincronizada?")) {
+                signOut(auth).then(() => showToast("Sincronización pausada", "info"));
+            }
+        });
+
+        // --- UTILS ---
+        function saveLocal() {
+            localStorage.setItem('epc_user_v3', JSON.stringify(state.user));
+            localStorage.setItem('epc_goals_v3', JSON.stringify(state.goals));
             render();
         }
 
@@ -408,47 +648,65 @@
             render();
         };
 
-        window.openModal = () => document.getElementById('modal').classList.remove('hidden');
-        window.closeModal = () => document.getElementById('modal').classList.add('hidden');
-
-        // SYNC FIREBASE
-        onAuthStateChanged(auth, async (u) => {
-            if (u) {
-                document.getElementById('syncDot').classList.replace('bg-slate-500', 'bg-emerald-500');
-                document.getElementById('syncText').innerText = "SYNC: ON";
-                document.getElementById('syncText').classList.replace('text-slate-400', 'text-emerald-500');
-
-                // Cargar perfil
-                const snap = await getDoc(doc(db, 'artifacts', appId, 'users', u.uid, 'profile', 'data'));
-                if (snap.exists()) {
-                    state.user = snap.data();
-                    save();
-                } else {
-                    document.getElementById('onboarding').classList.remove('hidden');
-                }
-
-                // Listener de metas
-                onSnapshot(collection(db, 'artifacts', appId, 'users', u.uid, 'goals'), (s) => {
-                    state.goals = s.docs.map(d => ({ id: d.id, ...d.data() }));
-                    save();
-                });
-            } else {
-                signInAnonymously(auth);
-            }
-        });
-
-        document.getElementById('btnInit').onclick = async () => {
-            const name = document.getElementById('userNameInput').value.trim();
-            if(!name) return;
-            state.user.name = name;
-            state.user.streak = 1;
-            save();
-            document.getElementById('onboarding').classList.add('hidden');
-            if(auth.currentUser) {
-                await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data'), state.user);
-            }
+        window.openModal = () => {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            // Allow display block to apply before animating opacity
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            });
+            setTimeout(() => document.getElementById('goalTitle').focus(), 100);
         };
 
+        window.closeModal = () => {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // match transition duration
+        };
+
+        // UI Helpers
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>' : 
+                         type === 'error' ? '<i data-lucide="alert-circle" class="w-4 h-4 text-red-400"></i>' : 
+                         '<i data-lucide="info" class="w-4 h-4 text-indigo-400"></i>';
+            
+            toast.className = `glass px-4 py-3 rounded-xl flex items-center gap-3 shadow-2xl border border-white/10 toast-enter text-sm font-bold text-white`;
+            toast.innerHTML = `${icon} ${message}`;
+            
+            container.appendChild(toast);
+            lucide.createIcons({root: toast});
+            
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-leave');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function animateValue(obj, start, end, duration, suffix = "") {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                obj.innerText = current + suffix;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerText = end + suffix;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Init initial render
         render();
     </script>
 </body>

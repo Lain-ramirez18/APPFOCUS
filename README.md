@@ -1,4 +1,4 @@
-CORE v3.0 - Sistema de Gestión de Impacto (Local First)
+#CORE v3.0 - Sistema de Gestión de Impacto (Local First)
 
 CORE v3.0 es una aplicación de productividad de alto rendimiento diseñada bajo la metodología de "Trabajo Profundo" (Deep Work). Esta versión ha sido optimizada para funcionar de manera totalmente local, garantizando privacidad, velocidad y disponibilidad sin necesidad de conexión a internet.
 

@@ -19,24 +19,24 @@ Styling: Tailwind CSS para una arquitectura de diseño escalable y responsiva.
 
 Icons: Lucide React para una iconografía limpia y consistente.
 
-Runtime: Babel Standalone para ejecución inmediata en navegador sin procesos de build complejos.
+Runtime: Babel Standalone para ejecución inmediata en navegador.
 
 🧠 Arquitectura y Decisiones Técnicas
 El proyecto fue diseñado para resolver el problema de la dependencia de servicios en la nube en herramientas de productividad.
 
 Optimización de Memoria: Se utiliza useMemo para el filtrado de la agenda, evitando re-renderizados innecesarios y garantizando fluidez incluso con cientos de bloques.
 
-Diseño Atómico: Los componentes como la barra de eficiencia y los bloques de agenda son modulares, facilitando futuras expansiones (como persistencia en base de datos).
+Diseño Atómico: Los componentes como la barra de eficiencia y los bloques de agenda son modulares, facilitando futuras expansiones.
 
-Zero-Configuration: La app es un archivo autónomo que no requiere instalación de node_modules para ser previsualizada, ideal para despliegues rápidos en GitHub Pages.
+Zero-Configuration: La app es un archivo autónomo que no requiere instalación de dependencias pesadas, ideal para previsualizaciones rápidas.
 
 📦 Instalación y Uso
 Puedes ejecutar este proyecto localmente en menos de 10 segundos:
 
 Clona el repositorio:
-
-Bash
 git clone https://github.com/Lain-ramirez18/APPFOCUS.git
+
+Ejecución:
 Abre el archivo index.html en tu navegador preferido.
 
 Desarrollado por Lain Ramirez Transformando la disciplina en código. ⚡

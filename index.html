@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORE v3.0 - Sistema Local</title>
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="./css/style.css">
+    
+    <!-- Librerías Externas -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" defer></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" defer></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Scripts de la aplicación cargados secuencialmente -->
+    <script type="text/babel" src="./js/components/Icon.js"></script>
+    <script type="text/babel" src="./js/App.js"></script>
+    <script type="text/babel" src="./js/main.js"></script>
+</body>
+</html>

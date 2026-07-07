@@ -18,25 +18,50 @@
 * **Frontend Core:** React.js (Hooks avanzados: `useState`, `useMemo`, `useEffect`).
 * **Styling:** Tailwind CSS para una arquitectura de diseño escalable y responsiva.
 * **Icons:** Lucide React para una iconografía limpia y consistente.
-* **Runtime:** Babel Standalone para ejecución inmediata en navegador.
+* **Runtime:** Babel Standalone para ejecución inmediata en navegador sin bundlers complejos.
 
-## 🧠 Arquitectura y Decisiones Técnicas
+## 🧠 Arquitectura Modular (Clean Code)
 
-El proyecto fue diseñado para resolver el problema de la dependencia de servicios en la nube en herramientas de productividad.
+El proyecto ha sido refactorizado siguiendo los principios de Clean Code, pasando de un archivo único ("espagueti") a una arquitectura estructurada y modular:
 
-1.  **Optimización de Memoria:** Se utiliza `useMemo` para el filtrado de la agenda, evitando re-renderizados innecesarios y garantizando fluidez incluso con cientos de bloques.
-2.  **Diseño Atómico:** Los componentes como la barra de eficiencia y los bloques de agenda son modulares, facilitando futuras expansiones.
-3.  **Zero-Configuration:** La app es un archivo autónomo que no requiere instalación de dependencias pesadas, ideal para previsualizaciones rápidas.
+```text
+/
+├── index.html          # Estructura semántica, libre de scripts y estilos embebidos
+├── css/
+│   └── style.css       # Estilos globales y reglas custom (ej. custom-scrollbar)
+├── js/
+│   ├── components/
+│   │   └── Icon.js     # Componente reutilizable para renderizar iconos
+│   ├── App.js          # Lógica de negocio (estados, filtrado) y componente UI
+│   └── main.js         # Punto de entrada de React (Render root)
+└── README.md           # Documentación
+```
 
 ## 📦 Instalación y Uso
 
-Puedes ejecutar este proyecto localmente en menos de 10 segundos:
+Puedes ejecutar este proyecto localmente en menos de 10 segundos.
+
+⚠️ **NOTA IMPORTANTE:** Debido a las políticas de seguridad (CORS) de los navegadores modernos para módulos y carga de scripts externos mediante Babel Standalone, **es necesario ejecutar un servidor local**.
 
 1.  **Clona el repositorio:**
-    git clone [https://github.com/Lain-ramirez18/APPFOCUS.git](https://github.com/Lain-ramirez18/APPFOCUS.git)
+    ```bash
+    git clone https://github.com/Lain-ramirez18/APPFOCUS.git
+    cd APPFOCUS
+    ```
 
-2.  **Ejecución:**
-    Abre el archivo `index.html` en tu navegador preferido.
+2.  **Ejecución con servidor local:**
+    Puedes usar extensiones como "Live Server" en VSCode, o usar Python/Node:
+    * Usando Python (ya instalado en la mayoría de sistemas):
+      ```bash
+      python -m http.server 8000
+      ```
+    * O con Node.js (`npx`):
+      ```bash
+      npx serve .
+      ```
+
+3.  **Abre en el navegador:**
+    Visita `http://localhost:8000` (o el puerto que te indique tu servidor).
 
 ---
 **Desarrollado por [Lain Ramirez](https://github.com/Lain-ramirez18)** *Transformando la disciplina en código.* ⚡
